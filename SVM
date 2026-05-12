@@ -1,0 +1,77 @@
+# Titanic Survival Prediction using SVM (adapted for train_and_test2.csv)
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Step 1: Load dataset
+data = pd.read_csv(r"F:\TY\ML\Ass5\train_and_test2.csv")
+
+# Step 2: Clean dataset
+# Drop all columns named 'zero'
+data = data.loc[:, ~data.columns.str.contains('zero')]
+
+# Rename target column (typo fix)
+data = data.rename(columns={"2urvived": "Survived"})
+
+# Step 3: Feature Engineering
+data['FamilySize'] = data['sibsp'] + data['Parch'] + 1
+
+# Step 4: Handle missing values properly
+data['Age'] = data['Age'].fillna(data['Age'].median())
+data['Fare'] = data['Fare'].fillna(data['Fare'].median())
+data['Pclass'] = data['Pclass'].fillna(data['Pclass'].mode()[0])
+data['Embarked'] = data['Embarked'].fillna(data['Embarked'].mode()[0])
+data['Sex'] = data['Sex'].fillna(data['Sex'].mode()[0])
+
+# Drop any remaining rows with NaN (safety net)
+data = data.dropna()
+
+# Step 5: Define features and target
+X = data.drop(['Survived','Passengerid'], axis=1)
+y = data['Survived']
+
+# Step 6: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 7: Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 8: Train SVM with GridSearch
+param_grid = {
+    'C': [0.1, 1, 10],
+    'kernel': ['linear', 'rbf', 'poly'],
+    'gamma': ['scale', 'auto']
+}
+grid = GridSearchCV(SVC(), param_grid, cv=5, scoring='accuracy')
+grid.fit(X_train, y_train)
+
+print("Best Parameters:", grid.best_params_)
+
+# Step 9: Evaluate model
+y_pred = grid.predict(X_test)
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("Accuracy Score:", accuracy_score(y_test, y_pred))
+
+# Step 10: Responsible AI Fairness Check
+male_idx = (data['Sex'] == 1)
+female_idx = (data['Sex'] == 0)
+
+print("\nFairness Check:")
+print("Male accuracy:", accuracy_score(y[male_idx], grid.predict(scaler.transform(X[male_idx]))))
+print("Female accuracy:", accuracy_score(y[female_idx], grid.predict(scaler.transform(X[female_idx]))))
+
+# Step 11: Visualization
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+plt.title("Confusion Matrix - SVM Titanic Survival")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
