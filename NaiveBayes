@@ -1,0 +1,72 @@
+# Import libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import GaussianNB
+
+# Load dataset
+data = pd.read_csv(r"F:\TY\ML\Ass4\diabets.csv")
+print (data.shape)
+print (data.head())
+# Separate features and target
+X = data.iloc[:, 0:8].values
+y = data.iloc[:, 8].values
+
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.33, random_state=42)
+
+# Create model
+model = GaussianNB()
+
+# Train model
+model.fit(X_train, y_train)
+
+# Prediction on test data
+y_predict = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_predict)
+print("Model Accuracy: %.2f%%" % (accuracy * 100))
+
+# -------------------------------
+# User Input Prediction
+# -------------------------------
+
+print("\nEnter Patient Details")
+
+preg = float(input("Pregnancies: "))
+glucose = float(input("Glucose Level: "))
+bp = float(input("Blood Pressure: "))
+skin = float(input("Skin Thickness: "))
+insulin = float(input("Insulin Level: "))
+bmi = float(input("BMI: "))
+dpf = float(input("Diabetes Pedigree Function: "))
+age = float(input("Age: "))
+
+user_data = np.array([[preg, glucose, bp, skin, insulin, bmi, dpf, age]])
+
+prediction = model.predict(user_data)
+
+if prediction[0] == 1:
+    print("Result: Patient is likely to have Diabetes")
+else:
+    print("Result: Patient is NOT likely to have Diabetes")
+
+#Input-
+#Pregnancies: 2
+#Glucose Level: 120
+#Blood Pressure: 70
+#Skin Thickness: 20
+#Insulin Level: 79
+#BMI: 25.5
+#Diabetes Pedigree Function: 0.5
+#Age: 30
+
+
+
+#Output-
+#Model Accuracy: 76.92%
+
+#Result: Patient is NOT likely to have Diabetes
