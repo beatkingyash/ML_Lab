@@ -1,0 +1,54 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
+import matplotlib.pyplot as plt
+
+# Step 1: Load dataset
+df = pd.read_csv(r"F:\TY\ML\Ass3\mobile_store.csv")
+print(df.head())
+
+# Step 2: Encode categorical variables
+le_age = LabelEncoder()
+le_income = LabelEncoder()
+le_occ = LabelEncoder()
+le_marital = LabelEncoder()
+le_buys = LabelEncoder()
+
+df["Age_n"] = le_age.fit_transform(df["Age"])
+df["Income_n"] = le_income.fit_transform(df["Income"])
+df["Occupation_n"] = le_occ.fit_transform(df["Occupation"])
+df["MaritalStatus_n"] = le_marital.fit_transform(df["MaritalStatus"])
+df["Buys_n"] = le_buys.fit_transform(df["Buys"])
+
+# Step 3: Features and target
+X = df[["Age_n","Income_n","Occupation_n","MaritalStatus_n"]]
+y = df["Buys_n"]
+
+# Step 4: Train Decision Tree
+model = DecisionTreeClassifier(criterion="entropy", random_state=42)
+model.fit(X, y)
+
+# Step 5: Show rules
+tree_rules = export_text(model, feature_names=["Age","Income","Occupation","MaritalStatus"])
+print("Decision Tree Rules:\n", tree_rules)
+
+# Step 6: Visualize tree
+plt.figure(figsize=(12,8))
+plot_tree(model, 
+          feature_names=["Age","Income","Occupation","MaritalStatus"], 
+          class_names=le_buys.classes_, 
+          filled=True, rounded=True,
+          fontsize=10)
+plt.show()
+
+# Step 7: Predict for a test case
+# Example: [Age 21-35, Income = Low, Occupation = Engineer, MaritalStatus = Married]
+test_data = pd.DataFrame([{
+    "Age_n": le_age.transform(["21-35"])[0],
+    "Income_n": le_income.transform(["Low"])[0],
+    "Occupation_n": le_occ.transform(["Engineer"])[0],
+    "MaritalStatus_n": le_marital.transform(["Married"])[0]
+}])
+
+prediction = model.predict(test_data)
+print("Prediction for test data:", le_buys.inverse_transform(prediction)[0])
