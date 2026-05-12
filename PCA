@@ -1,0 +1,59 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+
+data = {
+    "Height": [150, 160, 165, 170, 175, 180, 185, 190],
+    "Weight": [50, 55, 58, 65, 68, 75, 78, 85],
+    "Age":    [18, 20, 22, 25, 27, 30, 32, 35]
+}
+
+df = pd.DataFrame(data)
+print("Original Dataset:\n", df)
+
+
+X = df.values
+
+mean = np.mean(X, axis=0)
+std = np.std(X, axis=0)
+
+X_standardized = (X - mean) / std
+
+print("\nStandardized Data:\n", X_standardized)
+
+
+cov_matrix = np.cov(X_standardized.T)
+print("\nCovariance Matrix:\n", cov_matrix)
+
+
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+print("\nEigenvalues:\n", eigenvalues)
+print("\nEigenvectors:\n", eigenvectors)
+
+
+sorted_indices = np.argsort(eigenvalues)[::-1]
+eigenvalues_sorted = eigenvalues[sorted_indices]
+eigenvectors_sorted = eigenvectors[:, sorted_indices]
+
+print("\nSorted Eigenvalues:\n", eigenvalues_sorted)
+
+
+k = 2  # Reduce to 2 dimensions
+principal_components = eigenvectors_sorted[:, :k]
+
+
+X_pca = np.dot(X_standardized, principal_components)
+
+print("\nReduced Dataset (After PCA):\n", X_pca)
+
+
+plt.figure()
+plt.scatter(X_pca[:, 0], X_pca[:, 1])
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title("PCA Result (2D Projection)")
+plt.grid(True)
+plt.show()
