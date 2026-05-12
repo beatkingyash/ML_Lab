@@ -1,0 +1,32 @@
+# Step 1: Import libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+
+# Step 2: Load dataset
+df = pd.read_csv(r"F:\TY\ML\Ass7\Mall.csv")
+
+# Step 3: Select useful features
+X = df[['Annual Income (k$)', 'Spending Score (1-100)']]
+
+# Step 4: Scale data (important for DBSCAN)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Step 5: Apply DBSCAN
+model = DBSCAN(eps=0.5, min_samples=3)
+clusters = model.fit_predict(X_scaled)
+
+# Step 6: Add cluster labels to dataset
+df['Cluster'] = clusters
+
+# Step 7: Print results
+print(df[['Annual Income (k$)', 'Spending Score (1-100)', 'Cluster']])
+
+# Step 8: Plot clusters
+plt.scatter(df['Annual Income (k$)'], df['Spending Score (1-100)'], c=clusters)
+plt.xlabel("Annual Income")
+plt.ylabel("Spending Score")
+plt.title("DBSCAN Clustering")
+plt.show()
